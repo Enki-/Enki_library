@@ -25,6 +25,53 @@
 #define VAL(FIRST) \
   FIRST::value
 
+#define GET0(val) val::value
+#define GET1(val) GET0(val::next)
+#define GET2(val) GET1(val::next)
+#define GET3(val) GET2(val::next)
+#define GET4(val) GET3(val::next)
+#define GET5(val) GET4(val::next)
+
+#define CREATE1(val) IntList<Integer<val>, Integer<0> >
+#define CREATE2(val1, val2) IntList<Integer<val1>, CREATE1(val2) >
+#define CREATE3(val1, val2, val3) IntList<Integer<val1>, CREATE2(val2, val3) >
+#define CREATE4(val1, val2, val3, val4) IntList<Integer<val1>, CREATE3(val2, val3, val4) >
+
+
+
+
+template <bool i, int a, int b>
+struct static_if
+{
+    static const int value = a;
+};
+
+template <int a, int b>
+struct static_if<false, a, b>
+{
+    static const int value = b;
+};
+
+
+
+template<int x, int n>
+struct pow
+{
+    static const int value = x * pow<x, n-1>::value;
+};
+
+
+// template<int x, int n>
+// struct fast_pow
+// {
+//     static const int value =
+
+template<int x>
+struct pow<x, 1>
+{
+    static const int value = x;
+};
+
 
 template <int n>
 struct fact
@@ -74,7 +121,7 @@ struct Operation<'+', x, y>
 template <typename x, typename y>
 struct Operation<'^', x, y>
 {
-    static const int value = 73;
+    static const int value = pow<x::value, y::value>::value;
 };
 
 
@@ -190,11 +237,39 @@ struct Integer
       return v;
     }
 
+    operator
+    double ()
+    {
+      return v;
+    }
 
+    operator
+    float ()
+    {
+      return v;
+    }
 
 
 };
 
+
+template <typename a, typename T>
+struct IntList
+{
+    static const int value = a::value;
+    typedef T next;
+};
+
+struct OUT_OF_RANGE
+{
+};
+
+template <typename x>
+struct IntList<x, Integer<0> >
+{
+    static const int value = x::value;
+    typedef OUT_OF_RANGE next;
+};
 
 
 template <typename x>
@@ -225,9 +300,16 @@ int main()
 {
 //  std::cout << Operation<'+', Operation<0, Integer<0>, Integer<10> >, Operation<0, Integer<0>, Integer<32> > >::value << std::endl;
 //  std::cout << VAL(FIBO(INT(1))) << std::endl;
-  Integer<42> i;
-  Integer<1> j;
-  auto t = i / j;
-  bool o = typeid(t) == typeid(42);
-  std::cout << o << std::endl;
+  Integer<2> i;
+  Integer<2> j;
+  auto t = j ^ i;
+  std::cout << t << std::endl;
+  std::cout << static_if<2 == 1, 42, 73>::value << std::endl;
+
+//  typedef IntList<Integer<42>, IntList<Integer<73>, IntList<Integer<51>, Integer<0> > > > intlist;
+  typedef CREATE4(1, 2, 3, 4) intlist;
+
+  int foo = GET3(intlist);
+
+  std::cout << foo << std::endl;
 }
